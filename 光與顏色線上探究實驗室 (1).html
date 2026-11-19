@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>光與顏色 線上探究實驗室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* 版面：12 欄網格，左側模擬器 7 欄、右側學習單 5 欄；所有區塊共用 24px 間距與同一組圓角、內距 */
+  --bg:#eef0f3; --surface:#ffffff; --surface-2:#f6f7f9; --ink:#1b1f24; --muted:#5f6670; --line:#dde1e6;
+  --accent:#1d5fa8; --accent-soft:#e6eef8; --lab:#0b0d11;
+  --ok:#23784a; --ok-soft:#e3f2e9; --bad:#b2342b; --bad-soft:#f9e6e4;
+  --font:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --gap:24px; --pad:24px; --radius:12px; --ctl-h:38px;
+  color-scheme:light;
+}
+@media (max-width:560px){:root{--pad:16px;--gap:16px}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.65}
+h1,h2,h3,h4{text-wrap:balance;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- 外框 ---------- */
+.wrap{max-width:1360px;margin:0 auto;padding:0 32px}
+@media (max-width:700px){.wrap{padding:0 16px}}
+header{background:var(--surface);border-bottom:1px solid var(--line)}
+.head{display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px;padding:24px 0 20px}
+@media (max-width:860px){.head{grid-template-columns:1fr}}
+.eyebrow{font-size:13px;color:var(--muted);letter-spacing:.06em}
+h1{font-size:26px;font-weight:900;letter-spacing:.02em;line-height:1.3}
+.student{display:grid;grid-template-columns:96px 72px 140px auto;gap:12px;align-items:end}
+@media (max-width:560px){.student{grid-template-columns:1fr 1fr;}.student .field:nth-child(3){grid-column:1/-1}.student .btn{grid-column:1/-1}}
+.field{display:flex;flex-direction:column;gap:4px}
+.field span{font-size:12px;color:var(--muted)}
+.field input{height:var(--ctl-h);padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);width:100%}
+nav{display:flex;gap:28px;overflow-x:auto}
+nav button{border:none;background:none;padding:12px 0 14px;font-size:15px;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button .no{font-variant-numeric:tabular-nums;margin-right:8px;color:#9aa1aa}
+nav button.active{color:var(--ink);font-weight:700;border-bottom-color:var(--accent)}
+nav button.active .no{color:var(--accent)}
+
+main.wrap{padding-top:28px;padding-bottom:64px}
+section.tab{display:none}
+section.tab.active{display:block}
+.sec-head{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.sec-head .tag{font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);padding:2px 10px;border-radius:999px}
+.sec-head h2{font-size:24px;font-weight:900}
+.sec-head .time{margin-left:auto;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--gap);align-items:stretch}
+@media (max-width:1060px){.grid{grid-template-columns:minmax(0,1fr)}}
+.stack{display:flex;flex-direction:column;gap:var(--gap)}
+.stack>.grow{flex:1 1 auto}
+.sim{display:flex;flex-direction:column}
+.card.sim>.hint{margin-top:auto}
+.sim>.sim-foot{margin-top:auto}
+
+/* ---------- 卡片 ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:var(--pad)}
+.card-h{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;margin-bottom:16px}
+.card-h h3{font-size:17px;font-weight:700}
+.card-h .step{font-size:12px;color:var(--muted);letter-spacing:.06em}
+.card p{margin:0}
+.lead{font-size:15px;max-width:65ch}
+
+dl.meta{display:grid;grid-template-columns:5.5em 1fr;gap:8px 12px;margin:0;font-size:14.5px}
+dl.meta dt{color:var(--muted)}
+dl.meta dd{margin:0}
+ol.steps{margin:0;padding-left:1.2em}
+ol.steps li+li{margin-top:4px}
+
+/* ---------- 模擬器 ---------- */
+.sim{padding:0;overflow:hidden}
+.sim .card-h{padding:var(--pad) var(--pad) 0;margin-bottom:16px}
+.lab{background:var(--lab);margin:0 var(--pad);border-radius:10px;overflow:hidden}
+.lab canvas{display:block;width:100%;height:auto;touch-action:none}
+.readout{font-size:13.5px;color:#c4cad3;padding:10px 16px;border-top:1px solid #1d2229;min-height:44px;line-height:24px}
+.readout b{color:#fff;font-weight:500;font-variant-numeric:tabular-nums}
+.ctl-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 24px;padding:20px var(--pad)}
+.ctl-grid.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:640px){.ctl-grid,.ctl-grid.three{grid-template-columns:1fr}}
+.ctl-grid .full{grid-column:1/-1}
+.ctl{display:flex;flex-direction:column;gap:8px;min-width:0}
+.ctl-label{display:flex;justify-content:space-between;align-items:center;min-height:24px;font-size:13px;color:var(--muted)}
+.ctl-label output{font-variant-numeric:tabular-nums;color:var(--ink);font-weight:500}
+input[type=range]{width:100%;height:var(--ctl-h);margin:0;accent-color:var(--accent)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface);height:var(--ctl-h)}
+.seg button{border:none;border-right:1px solid var(--line);background:transparent;font-size:14px;cursor:pointer;padding:0 8px;white-space:nowrap}
+.seg button:last-child{border-right:none}
+.seg button:hover{background:var(--surface-2)}
+.seg button.on{background:var(--ink);color:#fff}
+.check{display:flex;align-items:center;gap:8px;height:var(--ctl-h);font-size:14px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--accent);margin:0}
+.card .hint{margin:0 var(--pad) var(--pad);font-size:14px;color:#24476d;background:var(--accent-soft);padding:12px 16px;border-radius:8px}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn{height:var(--ctl-h);padding:0 18px;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:#fff;cursor:pointer;font-size:14px}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:var(--surface);color:var(--accent)}
+.btn:disabled{opacity:.4;cursor:default;filter:none}
+
+/* ---------- 學習單元件 ---------- */
+.q+.q{margin-top:20px;padding-top:20px;border-top:1px solid var(--line)}
+.q p{margin:0 0 10px}
+.q-inline{display:grid;grid-template-columns:120px auto;gap:12px;align-items:center;justify-content:start}
+select{height:34px;padding:0 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);width:100%;min-width:0}
+textarea{width:100%;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;min-height:84px;resize:vertical;background:var(--surface);display:block}
+input.short{height:var(--ctl-h);padding:0 12px;border:1px solid var(--line);border-radius:8px;width:100%}
+.fb{font-size:14px;margin-top:12px;padding:10px 14px;border-radius:8px;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--ok-soft);color:var(--ok)}
+.fb.bad{background:var(--bad-soft);color:var(--bad)}
+.fb.info{background:var(--accent-soft);color:#24476d}
+details.ref{margin-top:10px;font-size:14px}
+details.ref summary{cursor:pointer;color:var(--accent);width:max-content}
+details.ref div{background:var(--surface-2);padding:10px 14px;border-radius:8px;margin-top:8px}
+.order{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:14px}
+.order-idx{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;font-size:12px;color:var(--muted);text-align:center;margin-top:4px;font-variant-numeric:tabular-nums}
+.order-ends{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:2px}
+.card .btn-row{margin-top:16px}
+.tbl-wrap{overflow-x:auto;margin-top:14px}
+table.rec{border-collapse:collapse;width:100%;table-layout:fixed;font-size:14px;min-width:420px}
+table.rec th,table.rec td{border:1px solid var(--line);padding:6px;text-align:center;height:46px;vertical-align:middle}
+table.rec thead th{background:var(--surface-2);font-weight:500;color:var(--muted);font-size:13px}
+table.rec tbody th{background:var(--surface-2);font-weight:500;width:88px}
+table.rec td.given{color:var(--muted)}
+table.rec td.ok{background:var(--ok-soft)}
+table.rec td.bad{background:var(--bad-soft)}
+.venn{display:block;margin:16px auto 0;width:200px;height:auto}
+.found{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.chip{display:grid;grid-template-columns:32px 1fr;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface-2)}
+.chip .sw{width:32px;height:32px;border-radius:50%;background:#d5d9de;border:1px solid rgba(0,0,0,.12)}
+.chip b{display:block;font-size:15px;line-height:1.3}
+.chip small{font-size:12.5px;color:var(--muted)}
+.chip.lock b{color:#9aa1aa}
+.chip.new{animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+#chMsg{font-size:14px}
+.light-ctl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.summary-card{border-left:4px solid var(--ok)}
+
+/* ---------- 實作 3 ---------- */
+.part-bar{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+@media (max-width:860px){.part-bar{grid-template-columns:1fr}}
+.part-bar .seg{min-width:340px}
+@media (max-width:560px){.part-bar .seg{min-width:0}.part-bar .seg button{white-space:normal;font-size:13px}}
+.scene-wrap{margin:0 var(--pad)}
+svg.scene{width:100%;height:auto;display:block;background:#e7e9ec;border-radius:10px}
+.analysis{display:grid;grid-template-columns:150px 1fr;gap:24px;align-items:center}
+@media (max-width:560px){.analysis{grid-template-columns:1fr}}
+.viewport{width:150px;height:150px;border-radius:50%;border:10px solid #16181c;box-shadow:inset 0 0 28px rgba(0,0,0,.6)}
+.view-cap{font-size:13px;color:var(--muted)}
+.view-cap b{display:block;font-size:22px;color:var(--ink);font-weight:900;margin-top:2px}
+.bars{display:grid;grid-template-columns:auto 20px auto 20px auto;align-items:end;justify-content:start;gap:8px;margin-top:14px}
+.bargroup{font-size:12.5px;color:var(--muted)}
+.bargroup .bx{display:flex;gap:4px;align-items:flex-end;height:64px;border-bottom:1px solid #9aa1aa;padding:0 4px;margin:6px 0 4px}
+.bargroup .bx span{width:18px;border-radius:2px 2px 0 0;transition:height .25s}
+.bargroup .lbl{display:flex;gap:4px;padding:0 4px}
+.bargroup .lbl i{width:18px;text-align:center;font-style:normal}
+.op{font-size:18px;color:var(--muted);text-align:center;padding-bottom:30px}
+.explain{font-size:14.5px;margin-top:16px;background:var(--surface-2);padding:12px 14px;border-radius:8px}
+.note{font-size:13px;color:var(--muted);margin-top:var(--gap);max-width:90ch}
+.teacher{max-width:880px}
+.teacher h3{font-size:17px;margin:24px 0 8px}
+.teacher h3:first-child{margin-top:0}
+.teacher ul{margin:0;padding-left:1.2em}
+.teacher li+li{margin-top:6px}
+.site-foot{padding:0 32px 28px;font-size:12px;color:#9aa1aa;text-align:right;letter-spacing:.04em}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <div class="eyebrow">國中自然　光學單元　探究實作 1–3</div>
+        <h1>光與顏色 線上探究實驗室</h1>
+      </div>
+      <div class="student">
+        <label class="field"><span>班級</span><input id="f-cls" data-key="cls" placeholder="802"></label>
+        <label class="field"><span>座號</span><input id="f-seat" data-key="seat" placeholder="15"></label>
+        <label class="field"><span>姓名</span><input id="f-name" data-key="name" placeholder="姓名"></label>
+        <button class="btn ghost" id="clearAll" type="button" title="清除這台裝置上保存的所有作答，換下一位同學使用">清除作答</button>
+      </div>
+    </div>
+    <nav id="tabs">
+      <button data-tab="t1" class="active"><span class="no">01</span>陽光的色散</button>
+      <button data-tab="t2"><span class="no">02</span>混合色光</button>
+      <button data-tab="t3"><span class="no">03</span>顏色大變身</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+<!-- ============ 實作 1 ============ -->
+<section class="tab active" id="t1">
+  <div class="sec-head"><span class="tag">探究實作 1</span><h2>陽光的色散</h2><span class="time">建議 5 分鐘</span></div>
+  <div class="grid">
+    <div class="card sim">
+      <div class="card-h"><h3>模擬器</h3><span class="step">白光 → 三稜鏡 → 屏幕</span></div>
+      <div class="lab">
+        <canvas id="prism" width="820" height="540" role="img" aria-label="三稜鏡色散模擬：左側白光射入三稜鏡，折射後投射到環形屏幕"></canvas>
+        <div class="readout" id="prismRead"></div>
+      </div>
+      <div class="ctl-grid">
+        <div class="ctl">
+          <div class="ctl-label"><span>轉動三稜鏡</span><span>可在稜鏡外左右拖曳</span></div>
+          <input type="range" id="rot" min="-60" max="60" step="0.5" value="0">
+        </div>
+        <div class="ctl">
+          <div class="ctl-label"><span>上下移動三稜鏡</span><span>可直接拖曳稜鏡</span></div>
+          <input type="range" id="posY" min="-120" max="120" step="1" value="0">
+        </div>
+        <div class="ctl full">
+          <div class="ctl-label"><span>光源</span></div>
+          <div class="seg" id="srcSeg">
+            <button data-v="white" class="on">白光（陽光）</button>
+            <button data-v="650">紅光</button>
+            <button data-v="530">綠光</button>
+            <button data-v="460">藍光</button>
+          </div>
+        </div>
+      </div>
+      <p class="hint">先上下移動、轉動三稜鏡，找出能讓白光在屏幕上分成彩色光帶的位置與角度。接著改用單一色光照射，看看它會不會再被分開。</p>
+    </div>
+
+    <div class="stack">
+      <div class="card">
+        <div class="card-h"><h3>實驗說明</h3></div>
+        <dl class="meta">
+          <dt>實驗目的</dt><dd>觀察陽光的色散現象</dd>
+          <dt>實驗材料</dt><dd>三稜鏡、屏幕、白光光源（模擬陽光）</dd>
+          <dt>實驗步驟</dt><dd>將三稜鏡放在光線路徑上，轉動至某個角度，三稜鏡能將白光折射成彩色光。</dd>
+        </dl>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>實驗紀錄</h3></div>
+        <p class="lead">光源選擇<b>「白光（陽光）」</b>入射三稜鏡時，屏幕上產生的色帶，從偏折最少的一端（最接近原本白光前進方向）開始，依序是哪些顏色？</p>
+        <div class="order" id="orderBox"></div>
+        <div class="order-idx"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+        <div class="order-ends"><span>偏折最少</span><span>偏折最多</span></div>
+        <div class="btn-row"><button class="btn" id="chk1a">核對紀錄</button></div>
+        <div class="fb" id="fb1a"></div>
+      </div>
+      <div class="card grow">
+        <div class="card-h"><h3>問題與討論</h3></div>
+        <div class="q">
+          <p>(1) 三稜鏡將陽光折射成彩色光，你看到幾種顏色的光線？</p>
+          <div class="q-inline"><input class="short" id="q1_1" data-key="q1_1" placeholder="填數字"><button class="btn ghost" id="chk1b">送出</button></div>
+          <div class="fb" id="fb1b"></div>
+        </div>
+        <div class="q">
+          <p>(2) 在生活中，你曾經看見過類似上述光的折射現象嗎？請說明。</p>
+          <textarea id="q1_2" data-key="q1_2" placeholder="寫下你看過的現象，以及當時光經過了什麼物質"></textarea>
+          <details class="ref"><summary>寫完後，看看參考想法</summary><div>
+            雨後的彩虹（陽光進入小水滴折射、反射）；陽光照到玻璃杯、魚缸、水晶吊飾邊緣出現彩色光；噴水池或澆花時水霧中出現彩虹。<br>
+            注意：光碟片背面、肥皂泡、油膜上的彩色，雖然看起來很像，但原理是光的<b>干涉、繞射</b>，不是色散。
+          </div></details>
+        </div>
+      </div>
+      <div class="card summary-card" id="sum1" style="display:none">
+        <div class="card-h"><h3>觀念整理</h3></div>
+        <p class="lead">白光（陽光）是由許多不同顏色的色光組成。不同顏色的光在玻璃中的折射程度不同：<b>紅光偏折最少、紫光偏折最多</b>，因此通過三稜鏡後會分開，這種現象稱為<b>色散</b>。單一顏色的光通過三稜鏡只會偏折，不會再被分成其他顏色。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 實作 2 ============ -->
+<section class="tab" id="t2">
+  <div class="sec-head"><span class="tag">探究實作 2</span><h2>混合色光</h2><span class="time">建議 5 分鐘</span></div>
+  <div class="grid">
+    <div class="stack">
+    <div class="card sim">
+      <div class="card-h"><h3>模擬器</h3><span class="step">拖曳光斑移動 LED；白色十字是色光偵測器，拖曳到任一點讀取顏色</span></div>
+      <div class="lab">
+        <canvas id="mix" width="560" height="460" role="img" aria-label="三原色光混合模擬：紅、綠、藍三盞 LED 的光斑，重疊處標示混合後的顏色"></canvas>
+        <div class="readout" id="probeRead"></div>
+      </div>
+      <div class="ctl-grid three" id="lightCtl"></div>
+      <div class="btn-row" style="padding:0 var(--pad) var(--pad)">
+        <button class="btn ghost" id="arrange">排成示意圖的位置</button>
+        <button class="btn ghost" id="scatter">把三盞燈分開</button>
+      </div>
+    </div>
+      <div class="card grow">
+        <div class="card-h"><h3>色光圖鑑</h3><span class="step" id="foundCount">已混出 0 / 7 種</span></div>
+        <p class="lead" style="margin-bottom:14px">讓色光重疊，畫面上會標出混合後的顏色名稱。混出的色光會收進圖鑑，試著集滿 7 種。</p>
+        <div class="found" id="found"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <div class="card-h"><h3>實驗說明</h3></div>
+        <dl class="meta">
+          <dt>實驗目的</dt><dd>觀察三原色光的混合顏色</dd>
+          <dt>實驗材料</dt><dd>紅、綠、藍三種 LED 手指燈（模擬）</dd>
+          <dt>實驗步驟</dt><dd><ol class="steps">
+            <li>使用紅、綠、藍（R、G、B）三種 LED 燈，嘗試混合出示意圖中 A、B、C 與中間區域的色光。</li>
+            <li>混合出的色光會在畫面上標示顏色名稱，並收進色光圖鑑。</li>
+          </ol></dd>
+        </dl>
+        <svg class="venn" viewBox="0 0 220 180" role="img" aria-label="三原色光混合示意圖">
+          <circle cx="110" cy="62" r="52" fill="none" stroke="#5f6670"/>
+          <circle cx="78" cy="112" r="52" fill="none" stroke="#5f6670"/>
+          <circle cx="142" cy="112" r="52" fill="none" stroke="#5f6670"/>
+          <text x="110" y="40" font-size="14" text-anchor="middle" fill="#1b1f24">紅</text>
+          <text x="50" y="128" font-size="14" text-anchor="middle" fill="#1b1f24">藍</text>
+          <text x="170" y="128" font-size="14" text-anchor="middle" fill="#1b1f24">綠</text>
+          <text x="82" y="82" font-size="15" text-anchor="middle" font-weight="700" fill="#1b1f24">A</text>
+          <text x="138" y="82" font-size="15" text-anchor="middle" font-weight="700" fill="#1b1f24">B</text>
+          <text x="110" y="140" font-size="15" text-anchor="middle" font-weight="700" fill="#1b1f24">C</text>
+          <text x="110" y="100" font-size="12" text-anchor="middle" fill="#1b1f24">白</text>
+        </svg>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>實驗紀錄</h3></div>
+        <div class="tbl-wrap"><table class="rec" id="tbl2"></table></div>
+        <div class="btn-row"><button class="btn" id="chk2">核對紀錄</button></div>
+        <div class="fb" id="fb2"></div>
+      </div>
+      <div class="card grow">
+        <div class="card-h"><h3>問題與討論</h3></div>
+        <div class="q">
+          <p>請調出白光，你是如何做到的？</p>
+          <textarea id="q2_1" data-key="q2_1" placeholder="說明你用了哪些色光、怎麼擺放、亮度如何"></textarea>
+          <details class="ref"><summary>寫完後，看看參考想法</summary><div>
+            將紅、綠、藍三種色光以<b>相同且足夠的亮度</b>照在同一個區域，三者重疊的地方就會呈現白光。只要其中一種色光變暗或關掉，白色就會偏向其他顏色。
+          </div></details>
+        </div>
+        <div class="q">
+          <p>延伸挑戰：只用紅、綠兩盞燈並調整亮度，能混合出<b>橙色</b>嗎？把色光偵測器放在橙色區域，按下檢查。</p>
+          <div class="btn-row" style="margin-top:0"><button class="btn ghost" id="chkOrange">檢查偵測器位置的顏色</button></div>
+          <div class="fb" id="fbOrange"></div>
+        </div>
+      </div>
+      <div class="card summary-card" id="sum2" style="display:none">
+        <div class="card-h"><h3>觀念整理</h3></div>
+        <p class="lead">紅、綠、藍稱為<b>色光三原色</b>。色光混合時亮度會相加：紅＋綠＝黃、紅＋藍＝洋紅、綠＋藍＝青，紅＋綠＋藍＝白。改變各色光的亮度比例，可以混合出許多其他顏色，電視、手機螢幕就是利用這個原理。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 實作 3 ============ -->
+<section class="tab" id="t3">
+  <div class="sec-head"><span class="tag">探究實作 3</span><h2>顏色大變身</h2><span class="time">建議 10 分鐘</span></div>
+  <div class="card" style="margin-bottom:var(--gap)">
+    <div class="part-bar">
+      <dl class="meta">
+        <dt>實驗目的</dt><dd>觀察不透明物體與透明物體顏色的成因</dd>
+        <dt>實驗材料</dt><dd>白、紅、綠、藍四種 LED 手指燈；白、紅、綠、藍、黑五種色紙；紅、綠、藍三色玻璃紙；黑色紙捲（遮住室內光）</dd>
+      </dl>
+      <div class="seg" id="part3Seg">
+        <button data-v="p1" class="on">(1) 色光照射色紙</button>
+        <button data-v="p2">(2) 色光穿過玻璃紙</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3-1 -->
+  <div id="p1">
+    <div class="grid">
+      <div class="stack">
+        <div class="card sim">
+          <div class="card-h"><h3>(1) 色光照射色紙</h3><span class="step">紙筒罩住色紙，從側邊小洞照射，從上方往下看</span></div>
+          <div class="scene-wrap"><svg class="scene" id="scene1" viewBox="0 0 800 330"></svg></div>
+          <div class="ctl-grid">
+            <div class="ctl">
+              <div class="ctl-label"><span>LED 手指燈</span></div>
+              <div class="seg" id="led1Seg">
+                <button data-v="white" class="on">白光</button>
+                <button data-v="red">紅光</button>
+                <button data-v="green">綠光</button>
+                <button data-v="blue">藍光</button>
+              </div>
+            </div>
+            <div class="ctl">
+              <div class="ctl-label"><span>色紙</span><span>也可點畫面中的色紙</span></div>
+              <div class="seg" id="paperSeg">
+                <button data-v="white" class="on">白</button>
+                <button data-v="red">紅</button>
+                <button data-v="green">綠</button>
+                <button data-v="blue">藍</button>
+                <button data-v="black">黑</button>
+              </div>
+            </div>
+            <label class="check full"><input type="checkbox" id="tubeOn" checked> 使用黑色紙筒遮住室內光</label>
+          </div>
+        </div>
+        <div class="card grow">
+          <div class="card-h"><h3>光的去向分析</h3></div>
+          <div class="analysis">
+            <div class="viewport" id="view1"></div>
+            <div>
+              <div class="view-cap">從紙筒上方看到<b id="view1Name">白色</b></div>
+              <div class="bars" id="bars1"></div>
+            </div>
+          </div>
+          <div class="explain" id="explain1"></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <div class="card-h"><h3>實驗紀錄</h3></div>
+          <p class="lead">記錄五種色紙在不同色光照射下，看起來變成什麼顏色。</p>
+          <div class="tbl-wrap"><table class="rec" id="tbl31"></table></div>
+          <div class="btn-row"><button class="btn" id="chk31">核對紀錄</button></div>
+          <div class="fb" id="fb31"></div>
+        </div>
+        <div class="card grow">
+          <div class="card-h"><h3>問題與討論</h3></div>
+          <div class="q">
+            <p>(1) 在紅光照射下，白紙和紅紙看起來一樣嗎？為什麼？</p>
+            <textarea id="q3_1" data-key="q3_1"></textarea>
+            <details class="ref"><summary>寫完後，看看參考想法</summary><div>看起來都是紅色。白紙會反射所有色光，紅紙只反射紅光；照射的光只有紅光，所以兩者反射進入眼睛的都只有紅光。</div></details>
+          </div>
+          <div class="q">
+            <p>(2) 為什麼一定要用黑色紙筒罩住色紙？如果拿掉紙筒，結果會怎樣？（可以取消勾選紙筒試試）</p>
+            <textarea id="q3_2" data-key="q3_2"></textarea>
+            <details class="ref"><summary>寫完後，看看參考想法</summary><div>紙筒可以擋住室內的白光，讓照到色紙上的只有 LED 的色光，這是在<b>控制變因</b>。拿掉紙筒後，室內白光也會照到色紙，色紙就會大致呈現原本的顏色，看不出色光造成的變化。</div></details>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3-2 -->
+  <div id="p2" style="display:none">
+    <div class="grid">
+      <div class="stack">
+        <div class="card sim">
+          <div class="card-h"><h3>(2) 色光穿過玻璃紙</h3><span class="step">玻璃紙貼在小洞上，觀察紙筒內白紙的顏色</span></div>
+          <div class="scene-wrap"><svg class="scene" id="scene2" viewBox="0 0 800 330"></svg></div>
+          <div class="ctl-grid">
+            <div class="ctl">
+              <div class="ctl-label"><span>LED 手指燈</span></div>
+              <div class="seg" id="led2Seg">
+                <button data-v="white" class="on">白光</button>
+                <button data-v="red">紅光</button>
+                <button data-v="green">綠光</button>
+                <button data-v="blue">藍光</button>
+              </div>
+            </div>
+            <div class="ctl">
+              <div class="ctl-label"><span>貼在小洞上的玻璃紙</span></div>
+              <div class="seg" id="filterSeg">
+                <button data-v="red" class="on">紅</button>
+                <button data-v="green">綠</button>
+                <button data-v="blue">藍</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card grow">
+          <div class="card-h"><h3>光的去向分析</h3></div>
+          <div class="analysis">
+            <div class="viewport" id="view2"></div>
+            <div>
+              <div class="view-cap">紙筒底部的白紙上看到<b id="view2Name">紅色</b></div>
+              <div class="bars" id="bars2"></div>
+            </div>
+          </div>
+          <div class="explain" id="explain2"></div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="card">
+          <div class="card-h"><h3>實驗紀錄</h3></div>
+          <p class="lead">記錄各色光穿過三色玻璃紙後呈現的顏色。</p>
+          <div class="tbl-wrap"><table class="rec" id="tbl32"></table></div>
+          <div class="btn-row"><button class="btn" id="chk32">核對紀錄</button></div>
+          <div class="fb" id="fb32"></div>
+        </div>
+        <div class="card grow">
+          <div class="card-h"><h3>問題與討論</h3></div>
+          <div class="q">
+            <p>(3) 比較色紙與玻璃紙：不透明物體和透明物體的顏色，各是由什麼決定的？</p>
+            <textarea id="q3_3" data-key="q3_3"></textarea>
+            <details class="ref"><summary>寫完後，看看參考想法</summary><div>不透明物體的顏色由它<b>反射</b>的色光決定；透明物體的顏色由它<b>能讓哪些色光通過</b>（透射）決定。沒被反射或透射的色光被物體吸收了。</div></details>
+          </div>
+          <div class="q">
+            <p>(4) 舞台上演員穿著藍色衣服，如果只打紅色燈光，觀眾看到的衣服是什麼顏色？</p>
+            <textarea id="q3_4" data-key="q3_4"></textarea>
+            <details class="ref"><summary>寫完後，看看參考想法</summary><div>接近黑色。藍色衣服只反射藍光，紅光被吸收，沒有色光反射到觀眾眼中。</div></details>
+          </div>
+        </div>
+        <div class="card summary-card" id="sum3" style="display:none">
+          <div class="card-h"><h3>觀念整理</h3></div>
+          <p class="lead">物體本身不會發光時，我們看到的顏色取決於<b>照射的色光</b>與<b>物體反射（或透射）哪些色光</b>。白色物體反射所有色光、黑色物體吸收所有色光；紅色物體只反射紅光、紅色玻璃紙只讓紅光通過。如果照射的光中沒有物體能反射或透射的色光，物體看起來就是黑色。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">本模擬採用理想化模型：色紙只反射與自己同色的色光、玻璃紙只讓同色光通過。真實的色紙和玻璃紙並不完全純，所以實際操作時可能看到暗紅而不是全黑，這是正常的，也很值得在課堂上討論。</p>
+</section>
+
+</main>
+<footer class="site-foot wrap">其哲老師 設計</footer>
+
+<script>
+(function(){
+"use strict";
+/* ---------- storage ---------- */
+var store={};
+try{store=JSON.parse(localStorage.getItem('lightLab')||'{}')||{};}catch(e){store={};}
+function save(){try{localStorage.setItem('lightLab',JSON.stringify(store));}catch(e){}}
+function setVal(k,v){store[k]=v;save();}
+
+document.querySelectorAll('[data-key]').forEach(function(el){
+  var k=el.dataset.key; if(store[k]!=null) el.value=store[k];
+  el.addEventListener('input',function(){setVal(k,el.value);});
+});
+
+/* ---------- tabs ---------- */
+var tabBtns=document.querySelectorAll('#tabs button');
+tabBtns.forEach(function(b){b.addEventListener('click',function(){
+  tabBtns.forEach(function(x){x.classList.toggle('active',x===b);});
+  document.querySelectorAll('section.tab').forEach(function(s){s.classList.toggle('active',s.id===b.dataset.tab);});
+  if(b.dataset.tab==='t2') drawMix();
+  if(b.dataset.tab==='t1') drawPrism();
+});});
+
+function seg(id,cb){
+  var box=document.getElementById(id);
+  box.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){
+    box.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b);});
+    cb(b.dataset.v);
+  });});
+  return function(v){box.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x.dataset.v===v);});};
+}
+function fb(id,cls,html){var el=document.getElementById(id);el.className='fb show '+cls;el.innerHTML=html;}
+
+/* ================= 實作 1：三稜鏡 ================= */
+var cv1=document.getElementById('prism'),cx1=cv1.getContext('2d');
+var W1=820,H1=540;
+(function(){var d=window.devicePixelRatio||1;cv1.width=W1*d;cv1.height=H1*d;cx1.setTransform(d,0,0,d,0,0);})();
+var BEAMY=22,PC={x:390,y:270},SIDE=185,SR=245,A0=-150,A1=150;
+var rot=0,py=0,src='white',seenSpectrum=store.seen1||false;
+var lastOrder=null;
+
+function nGlass(nm){var l=nm/1000;return 1.60+0.020/(l*l);}
+function wl2rgb(w){
+  var r=0,g=0,b=0;
+  if(w<440){r=-(w-440)/60;b=1;}else if(w<490){g=(w-440)/50;b=1;}else if(w<510){g=1;b=-(w-510)/20;}
+  else if(w<580){r=(w-510)/70;g=1;}else if(w<645){r=1;g=-(w-645)/65;}else{r=1;}
+  var f=w<420?0.3+0.7*(w-380)/40:(w>700?0.3+0.7*(780-w)/80:1);
+  return [r*f,g*f,b*f];
+}
+function prismVerts(){
+  var R=SIDE/Math.sqrt(3),v=[];
+  for(var i=0;i<3;i++){var a=(-90+i*120+rot)*Math.PI/180;v.push({x:PC.x+R*Math.cos(a),y:PC.y+py+R*Math.sin(a)});}
+  return v;
+}
+function trace(o,d,n,V){
+  var segs=[],p={x:o.x,y:o.y},inside=false,hit=null,dir={x:d.x,y:d.y};
+  for(var k=0;k<8;k++){
+    var best=null,bt=1e9,bn=null;
+    for(var i=0;i<3;i++){
+      var a=V[i],b=V[(i+1)%3],ex=b.x-a.x,ey=b.y-a.y;
+      var den=dir.x*ey-dir.y*ex; if(Math.abs(den)<1e-9) continue;
+      var t=((a.x-p.x)*ey-(a.y-p.y)*ex)/den, u=((a.x-p.x)*dir.y-(a.y-p.y)*dir.x)/den;
+      if(t>1e-6&&u>=0&&u<=1&&t<bt){bt=t;var L=Math.hypot(ex,ey);bn={x:ey/L,y:-ex/L};best=true;}
+    }
+    if(!best){
+      if(inside) break;
+      // to arc screen
+      var fx=p.x-PC.x,fy=p.y-PC.y,B=fx*dir.x+fy*dir.y,C=fx*fx+fy*fy-SR*SR,disc=B*B-C;
+      var t2=-B+Math.sqrt(Math.max(0,disc));
+      var q={x:p.x+dir.x*t2,y:p.y+dir.y*t2};
+      var ang=Math.atan2(q.y-PC.y,q.x-PC.x)*180/Math.PI;
+      if(ang>=A0&&ang<=A1){segs.push([p,q,inside]);hit={ang:ang,dir:dir};}
+      else{segs.push([p,{x:p.x+dir.x*1400,y:p.y+dir.y*1400},inside]);}
+      break;
+    }
+    var h={x:p.x+dir.x*bt,y:p.y+dir.y*bt};
+    segs.push([p,h,inside]);
+    var nn=bn; if(dir.x*nn.x+dir.y*nn.y>0) nn={x:-nn.x,y:-nn.y};
+    var ci=-(dir.x*nn.x+dir.y*nn.y),eta=inside?n:1/n,kk=1-eta*eta*(1-ci*ci);
+    if(kk<0){dir={x:dir.x+2*ci*nn.x,y:dir.y+2*ci*nn.y};}
+    else{var s=eta*ci-Math.sqrt(kk);dir={x:eta*dir.x+s*nn.x,y:eta*dir.y+s*nn.y};inside=!inside;}
+    p=h;
+  }
+  return {segs:segs,hit:hit};
+}
+var OFFS=[-2,-1,0,1,2];
+function drawPrism(){
+  var c=cx1,V=prismVerts();
+  c.globalCompositeOperation='source-over';
+  c.fillStyle='#07090c';c.fillRect(0,0,W1,H1);
+  // screen arc
+  c.lineWidth=12;c.strokeStyle='#1d2229';c.beginPath();c.arc(PC.x,PC.y,SR+6,A0*Math.PI/180,A1*Math.PI/180);c.stroke();
+  c.fillStyle='#6d7682';c.font='14px "Noto Sans TC",sans-serif';
+  var la=60*Math.PI/180;c.fillText('屏幕',PC.x+(SR+22)*Math.cos(la),PC.y+(SR+22)*Math.sin(la)+16);
+  // source box
+  c.fillStyle='#2b313a';c.fillRect(8,PC.y+BEAMY-22,56,44);c.fillStyle='#9aa3ae';c.fillText('光源',20,PC.y+BEAMY+5);
+  // prism
+  c.beginPath();c.moveTo(V[0].x,V[0].y);c.lineTo(V[1].x,V[1].y);c.lineTo(V[2].x,V[2].y);c.closePath();
+  c.fillStyle='rgba(150,195,240,0.13)';c.fill();c.lineWidth=1.5;c.strokeStyle='rgba(190,220,255,0.7)';c.stroke();
+
+  var wls=[];if(src==='white'){for(var w=400;w<=700;w+=4)wls.push(w);}else wls=[+src];
+  var missed=trace({x:64,y:PC.y+BEAMY},{x:1,y:0},1.6,V).segs.length===1;
+  var bins={},hits=0,devR=null,devV=null,angR=null,angV=null;
+  c.globalCompositeOperation='lighter';c.lineCap='round';
+  // incoming beam
+  var inCol=src==='white'?[1,1,1]:wl2rgb(+src);
+  var o0={x:64,y:PC.y+BEAMY},d0={x:1,y:0};
+  wls.forEach(function(w){
+    var col=wl2rgb(w),n=nGlass(w),rgb=Math.round(col[0]*255)+','+Math.round(col[1]*255)+','+Math.round(col[2]*255);
+    var mono=wls.length===1, aIn=mono?0.35:0.09, aOut=mono?0.6:0.22;
+    var hitAll=true,hitAng=0;
+    OFFS.forEach(function(off){
+      var r=trace({x:o0.x,y:o0.y+off},d0,n,V);
+      r.segs.forEach(function(s,idx){
+        if(idx===0) return;
+        c.strokeStyle='rgba('+rgb+','+(s[2]?aIn:aOut)+')';c.lineWidth=2;
+        c.beginPath();c.moveTo(s[0].x,s[0].y);c.lineTo(s[1].x,s[1].y);c.stroke();
+      });
+      if(r.hit){var bi=Math.round(r.hit.ang*4);var bb=bins[bi]||(bins[bi]=[0,0,0]);bb[0]+=col[0];bb[1]+=col[1];bb[2]+=col[2];hitAng+=r.hit.ang;if(off===0){var dv=Math.acos(Math.max(-1,Math.min(1,r.hit.dir.x)))*180/Math.PI;if(w>=640&&devR===null){devR=dv;}if(w<=430){devV=dv;}}}
+      else hitAll=false;
+    });
+    if(hitAll){hits++;var ma=hitAng/OFFS.length;if(w>=640&&angR===null)angR=ma;if(w<=430&&angV===null)angV=ma;}
+  });
+  // incoming segments
+  OFFS.forEach(function(off){
+    var r=trace({x:o0.x,y:o0.y+off},d0,nGlass(550),V),s=r.segs[0];
+    c.strokeStyle='rgba('+Math.round(inCol[0]*255)+','+Math.round(inCol[1]*255)+','+Math.round(inCol[2]*255)+',0.55)';c.lineWidth=2;
+    c.beginPath();c.moveTo(s[0].x,s[0].y);c.lineTo(s[1].x,s[1].y);c.stroke();
+  });
+  // spectrum on screen
+  var mx=0;Object.keys(bins).forEach(function(k){var b=bins[k];mx=Math.max(mx,b[0],b[1],b[2]);});
+  c.globalCompositeOperation='source-over';c.lineCap='butt';
+  Object.keys(bins).forEach(function(k){
+    var b=bins[k],a1=(k/4-0.15)*Math.PI/180,a2=(k/4+0.15)*Math.PI/180,s=1/mx*1.6;
+    c.strokeStyle='rgb('+Math.min(255,Math.round(b[0]*s*255))+','+Math.min(255,Math.round(b[1]*s*255))+','+Math.min(255,Math.round(b[2]*s*255))+')';
+    c.lineWidth=16;c.beginPath();c.arc(PC.x,PC.y,SR+6,a1,a2);c.stroke();
+  });
+  var rd=document.getElementById('prismRead');
+  if(missed){rd.innerHTML='光線沒有照到三稜鏡，請上下移動三稜鏡，讓光照到稜鏡的側面。';}
+  else if(src==='white'){
+    var spread=(devR!==null&&devV!==null)?Math.abs(devV-devR):0;
+    if(hits>wls.length*0.8&&spread>1.5){
+      if(!seenSpectrum){seenSpectrum=true;setVal('seen1',true);}
+      rd.innerHTML='屏幕上出現連續的彩色光帶。紅光偏折約 <b>'+devR.toFixed(1)+'°</b>，紫光偏折約 <b>'+devV.toFixed(1)+'°</b>，相差 <b>'+(devV-devR).toFixed(1)+'°</b>。';
+    }else if(hits>wls.length*0.8){rd.innerHTML='光有到達屏幕，但顏色沒有明顯分開（光在稜鏡內反射後才射出，或只擦過稜鏡邊角）。再轉動三稜鏡，讓光從一面進入、從另一面直接射出。';}else if(hits>0){rd.innerHTML='只有部分色光射出三稜鏡，再轉動一點看看。';}
+    else rd.innerHTML='光線沒有射出三稜鏡到達屏幕（在稜鏡內發生全反射，或沒有照到稜鏡），請轉動三稜鏡。';
+  }else{
+    var nm={'650':'紅','530':'綠','460':'藍'}[src];
+    rd.innerHTML=hits?'單一'+nm+'光通過三稜鏡：只會偏折（約 <b>'+(devR!==null?devR:devV!==null?devV:0).toFixed(1)+'°</b>），屏幕上仍然只有'+nm+'色，沒有再分出其他顏色。':'光線沒有到達屏幕，請轉動三稜鏡。';
+    if(hits){var r0=trace(o0,d0,nGlass(+src),V);if(r0.hit)rd.innerHTML='單一'+nm+'光通過三稜鏡：只會偏折（約 <b>'+(Math.acos(r0.hit.dir.x)*180/Math.PI).toFixed(1)+'°</b>），屏幕上仍然只有'+nm+'色，沒有再分出其他顏色。';}
+  }
+}
+var rotEl=document.getElementById('rot');
+function setRot(v){rot=Math.max(-60,Math.min(60,v));rotEl.value=rot;drawPrism();}
+rotEl.addEventListener('input',function(){setRot(+rotEl.value);});
+seg('srcSeg',function(v){src=v;drawPrism();});
+var posEl=document.getElementById('posY');
+function setPos(v){py=Math.max(-120,Math.min(120,v));posEl.value=py;drawPrism();}
+posEl.addEventListener('input',function(){setPos(+posEl.value);});
+function inPrism(x,y){var V=prismVerts(),s=null;for(var i=0;i<3;i++){var a=V[i],b=V[(i+1)%3],c=(b.x-a.x)*(y-a.y)-(b.y-a.y)*(x-a.x);if(s===null)s=c>0;else if((c>0)!==s)return false;}return true;}
+(function(){var drag=null;
+  cv1.addEventListener('pointerdown',function(e){var r=cv1.getBoundingClientRect(),sc=W1/r.width,x=(e.clientX-r.left)*sc,y=(e.clientY-r.top)*sc;
+    drag=inPrism(x,y)?{m:'move',y:e.clientY,p:py}:{m:'rot',x:e.clientX,r:rot};cv1.style.cursor=drag.m==='move'?'grabbing':'ew-resize';cv1.setPointerCapture(e.pointerId);});
+  cv1.addEventListener('pointermove',function(e){var sc=W1/cv1.getBoundingClientRect().width;
+    if(!drag){var r=cv1.getBoundingClientRect();cv1.style.cursor=inPrism((e.clientX-r.left)*sc,(e.clientY-r.top)*sc)?'grab':'ew-resize';return;}
+    if(drag.m==='move')setPos(drag.p+(e.clientY-drag.y)*sc);else setRot(drag.r+(e.clientX-drag.x)*sc*0.25);});
+  cv1.addEventListener('pointerup',function(){drag=null;cv1.style.cursor='';});cv1.addEventListener('pointercancel',function(){drag=null;});
+})();
+
+var ORDER=['紅','橙','黃','綠','藍','靛','紫'];
+var ob=document.getElementById('orderBox');
+for(var i=0;i<7;i++){
+  var s=document.createElement('select');s.dataset.key='o'+i;s.id='o'+i;s.setAttribute('aria-label','第'+(i+1)+'個顏色');
+  s.innerHTML='<option value="">—</option>'+ORDER.map(function(x){return '<option>'+x+'</option>';}).join('');
+  if(store['o'+i])s.value=store['o'+i];
+  (function(s,i){s.addEventListener('change',function(){setVal('o'+i,s.value);});})(s,i);
+  ob.appendChild(s);
+}
+document.getElementById('chk1a').addEventListener('click',function(){
+  if(!seenSpectrum){fb('fb1a','info','請先將光源選為「白光（陽光）」，再移動、轉動三稜鏡，讓屏幕上形成完整的彩色光帶，再依觀察結果記錄。');return;}
+  var v=[];for(var i=0;i<7;i++)v.push(store['o'+i]||'');
+  if(v.indexOf('')>=0){fb('fb1a','info','還有空格沒有填寫。');return;}
+  var ok=v.join()===ORDER.join();
+  store.r1a=ok;save();
+  if(ok){fb('fb1a','ok','正確。偏折最少的是紅光，接著是橙、黃、綠、藍、靛，偏折最多的是紫光。');document.getElementById('sum1').style.display='';}
+  else{var wrong=v.reduce(function(n,x,i){return n+(x!==ORDER[i]?1:0);},0);fb('fb1a','bad','有 '+wrong+' 個位置與觀察結果不同。把畫面放大，從最靠近原本白光前進方向的那一端仔細再看一次。');}
+});
+document.getElementById('chk1b').addEventListener('click',function(){
+  var v=(store.q1_1||'').replace(/[^0-9０-９七六五]/g,'');
+  if(!v){fb('fb1b','info','請先填寫你看到的顏色數量。');return;}
+  if(/7|７|七/.test(v)) fb('fb1b','ok','一般會說成 7 種：紅、橙、黃、綠、藍、靛、紫。仔細看會發現顏色其實是「連續」漸變的，相鄰顏色之間沒有明顯界線，7 種是習慣上的分類方式。');
+  else fb('fb1b','info','你記錄了 '+v+' 種。一般會分成 7 種：紅、橙、黃、綠、藍、靛、紫。其實光帶的顏色是連續漸變的，所以不同人數出來的種類可能不同，這也是很好的觀察。');
+  document.getElementById('sum1').style.display='';
+});
+
+/* ================= 實作 2：混合色光 ================= */
+var cv2=document.getElementById('mix'),c2=cv2.getContext('2d',{willReadFrequently:true});
+var W2=560,H2=460,LR=110,D2=window.devicePixelRatio||1;
+cv2.width=W2*D2;cv2.height=H2*D2;c2.setTransform(D2,0,0,D2,0,0);
+var lights=[
+  {k:'r',nm:'紅光 LED',rgb:[255,40,40],c:[1,0,0],x:130,y:130,on:true,lv:1},
+  {k:'g',nm:'綠光 LED',rgb:[40,255,60],c:[0,1,0],x:430,y:130,on:true,lv:1},
+  {k:'b',nm:'藍光 LED',rgb:[50,80,255],c:[0,0,1],x:280,y:340,on:true,lv:1}
+];
+var probe={x:280,y:230};
+function drawMix(){
+  var c=c2;
+  c.globalCompositeOperation='source-over';c.fillStyle='#000';c.fillRect(0,0,W2,H2);
+  c.globalCompositeOperation='lighter';
+  lights.forEach(function(L){
+    if(!L.on||L.lv<=0)return;
+    var col=L.c.map(function(x){return Math.round(x*255*L.lv);});
+    var g=c.createRadialGradient(L.x,L.y,0,L.x,L.y,LR);
+    var s='rgb('+col.join(',')+')';
+    g.addColorStop(0,s);g.addColorStop(0.82,s);g.addColorStop(1,'rgba('+col.join(',')+',0)');
+    c.fillStyle=g;c.beginPath();c.arc(L.x,L.y,LR,0,Math.PI*2);c.fill();
+  });
+  c.globalCompositeOperation='source-over';
+  var px=c.getImageData(Math.round(probe.x*D2),Math.round(probe.y*D2),1,1).data;
+  probeVal=[px[0]/255,px[1]/255,px[2]/255];
+  var labels=regionLabels();
+  // handles
+  lights.forEach(function(L){
+    if(!L.on)return;
+    c.strokeStyle='rgba(255,255,255,0.35)';c.lineWidth=1.5;c.beginPath();c.arc(L.x,L.y,9,0,Math.PI*2);c.stroke();
+  });
+  [['#000',4],['#fff',2]].forEach(function(st){c.strokeStyle=st[0];c.lineWidth=st[1];c.beginPath();c.arc(probe.x,probe.y,11,0,Math.PI*2);c.stroke();
+  c.beginPath();c.moveTo(probe.x-18,probe.y);c.lineTo(probe.x-6,probe.y);c.moveTo(probe.x+6,probe.y);c.lineTo(probe.x+18,probe.y);
+  c.moveTo(probe.x,probe.y-18);c.lineTo(probe.x,probe.y-6);c.moveTo(probe.x,probe.y+6);c.lineTo(probe.x,probe.y+18);c.stroke();});
+  drawLabels(labels);
+  var p=probeVal.map(function(x){return Math.round(x*100);});
+  document.getElementById('probeRead').innerHTML='色光偵測器：紅 <b>'+p[0]+'%</b>　綠 <b>'+p[1]+'%</b>　藍 <b>'+p[2]+'%</b>　→　看起來是 <b>'+colorName(probeVal)+'</b>';
+}
+var probeVal=[0,0,0];
+(function(){
+  var d=window.devicePixelRatio||1; // keep 1:1 for pixel reading simplicity
+  var drag=null;
+  function pos(e){var r=cv2.getBoundingClientRect();return {x:(e.clientX-r.left)*W2/r.width,y:(e.clientY-r.top)*H2/r.height};}
+  cv2.addEventListener('pointerdown',function(e){
+    var p=pos(e);
+    if(Math.hypot(p.x-probe.x,p.y-probe.y)<22){drag={o:probe,dx:p.x-probe.x,dy:p.y-probe.y};}
+    else{var best=null,bd=1e9;lights.forEach(function(L){if(!L.on)return;var dd=Math.hypot(p.x-L.x,p.y-L.y);if(dd<LR&&dd<bd){bd=dd;best=L;}});
+      if(best)drag={o:best,dx:p.x-best.x,dy:p.y-best.y};}
+    if(drag)cv2.setPointerCapture(e.pointerId);
+  });
+  cv2.addEventListener('pointermove',function(e){if(!drag)return;var p=pos(e);drag.o.x=Math.max(0,Math.min(W2-1,p.x-drag.dx));drag.o.y=Math.max(0,Math.min(H2-1,p.y-drag.dy));drawMix();});
+  cv2.addEventListener('pointerup',function(){drag=null;});cv2.addEventListener('pointercancel',function(){drag=null;});
+})();
+var lc=document.getElementById('lightCtl');
+lights.forEach(function(L){
+  var d=document.createElement('div');d.className='light-ctl';
+  d.className='ctl';
+  d.innerHTML='<div class="ctl-label"><label class="check" style="height:auto;color:var(--ink);font-size:14px"><input type="checkbox" id="on-'+L.k+'" checked> '+L.nm+'</label><span>亮度 <output class="lvv">100%</output></span></div><input type="range" id="lv-'+L.k+'" min="0" max="100" value="100" aria-label="'+L.nm+'亮度">';
+  var cb=d.querySelector('input[type=checkbox]'),rg=d.querySelector('input[type=range]'),lv=d.querySelector('.lvv');
+  cb.addEventListener('change',function(){L.on=cb.checked;drawMix();});
+  rg.addEventListener('input',function(){L.lv=rg.value/100;lv.textContent=rg.value+'%';drawMix();});
+  lc.appendChild(d);
+});
+document.getElementById('arrange').addEventListener('click',function(){
+  lights[0].x=280;lights[0].y=165;lights[2].x=212;lights[2].y=283;lights[1].x=348;lights[1].y=283;probe.x=470;probe.y=110;drawMix();
+});
+document.getElementById('scatter').addEventListener('click',function(){
+  lights[0].x=130;lights[0].y=130;lights[1].x=430;lights[1].y=130;lights[2].x=280;lights[2].y=340;probe.x=280;probe.y=230;drawMix();
+});
+// region labels + 色光圖鑑
+var FOUND=[['紅','紅光','#ff2a2a'],['綠','綠光','#20d64a'],['藍','藍光','#2f55ff'],['黃','紅＋綠','#ffe02e'],['青','綠＋藍','#22dfff'],['洋紅','紅＋藍','#ff2fd9'],['白','紅＋綠＋藍','#ffffff']];
+var found=Array.isArray(store.found)?store.found:[];
+function sample(x,y){if(x<2||y<2||x>W2-2||y>H2-2)return null;var p=c2.getImageData(Math.round(x*D2),Math.round(y*D2),1,1).data;return [p[0]/255,p[1]/255,p[2]/255];}
+function regionLabels(){
+  var on=lights.filter(function(L){return L.on&&L.lv>0;}),pts=[];
+  on.forEach(function(L){pts.push({x:L.x,y:L.y+28});});
+  for(var a=0;a<on.length;a++)for(var b=a+1;b<on.length;b++){
+    var A=on[a],B=on[b],dx=B.x-A.x,dy=B.y-A.y,d=Math.hypot(dx,dy);
+    if(d>=LR*1.75||d<1)continue;
+    var mx=(A.x+B.x)/2,my=(A.y+B.y)/2,h=Math.sqrt(Math.max(0,LR*0.82*LR*0.82-(d/2)*(d/2))),px=-dy/d,py=dx/d;
+    var third=on.filter(function(L){return L!==A&&L!==B;})[0],off=Math.min(h*0.6,45),sgn=1;
+    if(third&&((mx+px*off-third.x)*(mx+px*off-third.x)+(my+py*off-third.y)*(my+py*off-third.y))<((mx-px*off-third.x)*(mx-px*off-third.x)+(my-py*off-third.y)*(my-py*off-third.y)))sgn=-1;
+    pts.push({x:mx+px*off*sgn,y:my+py*off*sgn});
+  }
+  if(on.length===3){pts.push({x:(on[0].x+on[1].x+on[2].x)/3,y:(on[0].y+on[1].y+on[2].y)/3});}
+  var out=[];
+  pts.forEach(function(p){
+    var v=sample(p.x,p.y);if(!v)return;var m=Math.max(v[0],v[1],v[2]);if(m<0.15)return;
+    var nm=colorName(v);
+    if(out.some(function(o){return o.nm===nm||Math.hypot(o.x-p.x,o.y-p.y)<46;}))return;
+    var comp=['紅','綠','藍'].filter(function(c,i){return v[i]/m>0.75;}).join('＋');
+    out.push({x:p.x,y:p.y,nm:nm,comp:comp.indexOf('＋')>0?comp:'',v:v});
+    var pure=nm.indexOf('淡')<0&&nm.indexOf('暗')<0&&nm.indexOf('橙')<0&&m>0.85;
+    if(pure)discover(shortName(v));
+  });
+  if(probeVal&&Math.max(probeVal[0],probeVal[1],probeVal[2])>0.85){var pn=colorName(probeVal);if(pn.indexOf('淡')<0&&pn.indexOf('暗')<0&&pn.indexOf('橙')<0)discover(shortName(probeVal));}
+  return out;
+}
+function drawLabels(list){
+  var c=c2;c.textAlign='center';c.textBaseline='middle';
+  list.forEach(function(o){
+    var t1=o.nm,t2=o.comp;c.font='700 15px "Noto Sans TC",sans-serif';
+    var w=Math.max(c.measureText(t1).width,t2?(c.font='12px "Noto Sans TC",sans-serif',c.measureText(t2).width):0)+18,h=t2?42:26;
+    c.fillStyle='rgba(10,12,16,0.72)';c.beginPath();
+    if(c.roundRect)c.roundRect(o.x-w/2,o.y-h/2,w,h,6);else c.rect(o.x-w/2,o.y-h/2,w,h);c.fill();
+    c.fillStyle='#fff';c.font='700 15px "Noto Sans TC",sans-serif';c.fillText(t1,o.x,t2?o.y-8:o.y+1);
+    if(t2){c.fillStyle='#c9ced6';c.font='12px "Noto Sans TC",sans-serif';c.fillText(t2,o.x,o.y+11);}
+  });
+}
+var lastNew=null;
+function discover(k){
+  if(!k||found.indexOf(k)>=0)return;found.push(k);store.found=found;save();lastNew=k;renderFound();
+}
+function renderFound(){
+  var box=document.getElementById('found');
+  box.innerHTML=FOUND.map(function(f){var got=found.indexOf(f[0])>=0;
+    return '<div class="chip'+(got?'':' lock')+(f[0]===lastNew?' new':'')+'"><span class="sw" style="'+(got?'background:'+f[2]:'')+'"></span><div><b>'+(got?f[0]+'色':'尚未混出')+'</b><small>'+(got?f[1]:'？')+'</small></div></div>';}).join('');
+  document.getElementById('foundCount').textContent='已混出 '+found.length+' / 7 種';
+  if(found.length>=7)document.getElementById('sum2').style.display='';
+  lastNew=null;
+}
+renderFound();
+document.getElementById('chkOrange').addEventListener('click',function(){
+  var v=probeVal,m=Math.max(v[0],v[1],v[2]);
+  if(m<0.2){fb('fbOrange','info','偵測器所在位置幾乎沒有光，請把偵測器移到有色光的地方。');return;}
+  var r=v[0]/m,g=v[1]/m,b=v[2]/m;
+  if(r>0.95&&g>0.3&&g<0.7&&b<0.15){fb('fbOrange','ok','成功！紅光強、綠光較弱（約一半），混合後就是橙色。改變比例就能得到不同顏色。');store.orange=true;save();}
+  else fb('fbOrange','bad','目前偵測到的是「'+colorName(v)+'」。提示：關掉藍光，紅光保持最亮，把綠光的亮度調低到一半左右，再讓兩盞燈重疊。');
+});
+// table 2
+var T2=[{k:'A',ans:'洋紅',given:true},{k:'B',ans:'黃'},{k:'C',ans:'青',given:true}];
+var COLORS=['白','紅','綠','藍','黃','青','洋紅','黑'];
+function opt(){return '<option value="">—</option>'+COLORS.map(function(x){return '<option>'+x+'</option>';}).join('');}
+(function(){
+  var t=document.getElementById('tbl2');
+  var h='<thead><tr><th>混合色光</th>'+T2.map(function(x){return '<th>'+x.k+'</th>';}).join('')+'</tr></thead><tbody><tr><th>組成</th><td>紅＋藍</td><td>紅＋綠</td><td>藍＋綠</td></tr><tr><th>顏色</th>';
+  T2.forEach(function(x){h+=x.given?'<td class="given">'+x.ans+'色</td>':'<td><select aria-label="'+x.k+' 區的顏色" data-k="m_'+x.k+'">'+opt()+'</select></td>';});
+  t.innerHTML=h+'</tr></tbody>';
+  t.querySelectorAll('select').forEach(function(s){var k=s.dataset.k;if(store[k])s.value=store[k];s.addEventListener('change',function(){setVal(k,s.value);});});
+})();
+document.getElementById('chk2').addEventListener('click',function(){
+  var s=document.querySelector('#tbl2 select'),v=s.value;
+  s.parentNode.classList.remove('ok','bad');
+  if(!v){fb('fb2','info','請先用偵測器量測 B 區域，再選擇顏色。');return;}
+  if(v==='黃'){s.parentNode.classList.add('ok');fb('fb2','ok','正確。紅光＋綠光＝黃光。你也可以用偵測器確認 A、C 區域：A 是紅＋藍＝洋紅、C 是綠＋藍＝青。');store.r2=true;document.getElementById('sum2').style.display='';}
+  else{s.parentNode.classList.add('bad');fb('fb2','bad','再檢查一次。把紅燈和綠燈重疊，並把色光偵測器放在重疊區，看看讀數。');store.r2=false;}
+  save();
+});
+
+/* ================= 實作 3 ================= */
+var VEC={white:[1,1,1],red:[1,0,0],green:[0,1,0],blue:[0,0,1],black:[0,0,0]};
+var ZH={white:'白',red:'紅',green:'綠',blue:'藍',black:'黑'};
+var PAPER_HEX={white:'#f5f4ef',red:'#d42a2a',green:'#2a9a4a',blue:'#2853c4',black:'#1b1b1b'};
+var LED_HEX={white:'#ffffff',red:'#ff3030',green:'#30ff5a',blue:'#3a66ff'};
+function colorName(v){
+  var m=Math.max(v[0],v[1],v[2]);if(m<0.12)return '黑色';
+  var n=v.map(function(x){return x/m;}),on=n.map(function(x){return x>0.75;});
+  var key=(on[0]?'r':'')+(on[1]?'g':'')+(on[2]?'b':'');
+  var base={r:'紅',g:'綠',b:'藍',rg:'黃',rb:'洋紅',gb:'青',rgb:'白'}[key];
+  var partial=n.some(function(x){return x>0.2&&x<=0.75;});
+  if(partial){
+    if(key==='r'&&n[1]>0.2&&n[1]<=0.75&&n[2]<0.2)return '橙色（紅＋少量綠）';
+    if(key==='r'&&n[1]>0.2&&n[2]>0.2)return '淡紅色（粉紅）';
+    return '淡'+base+'色（混合色）';
+  }
+  var dark=m<0.45?'暗':'';
+  return dark+base+'色';
+}
+function shortName(v){var m=Math.max(v[0],v[1],v[2]);if(m<0.12)return '黑';var on=v.map(function(x){return x/m>0.75;});return {r:'紅',g:'綠',b:'藍',rg:'黃',rb:'洋紅',gb:'青',rgb:'白'}[(on[0]?'r':'')+(on[1]?'g':'')+(on[2]?'b':'')];}
+function toCss(v){
+  // map to a display colour
+  var r=Math.min(1,v[0]),g=Math.min(1,v[1]),b=Math.min(1,v[2]);
+  return 'rgb('+Math.round(r*255)+','+Math.round(g*255)+','+Math.round(b*255)+')';
+}
+function barsHTML(groups){
+  var cols=['#e0352b','#2fae4f','#2f5fe0'];
+  return groups.map(function(g,gi){
+    var h='<div class="bargroup"><div>'+g.t+'</div><div class="bx">';
+    g.v.forEach(function(x,i){h+='<span style="height:'+Math.max(2,Math.min(1,x)*60)+'px;background:'+cols[i]+';opacity:'+(x>0.01?1:0.25)+'"></span>';});
+    h+='</div><div class="lbl"><i>紅</i><i>綠</i><i>藍</i></div></div>';
+    if(gi<groups.length-1)h+='<div class="op">'+(gi===0?'×':'＝')+'</div>';
+    return h;
+  }).join('');
+}
+// part toggle
+seg('part3Seg',function(v){document.getElementById('p1').style.display=v==='p1'?'':'none';document.getElementById('p2').style.display=v==='p2'?'':'none';});
+
+// 3-1 scene
+var led1='white',paper='white',tube=true;
+var PAPERS=['white','red','green','blue','black'];
+var setPaperSeg=seg('paperSeg',function(v){paper=v;render31();});
+seg('led1Seg',function(v){led1=v;render31();});
+document.getElementById('tubeOn').addEventListener('change',function(){tube=this.checked;render31();});
+function render31(){
+  var L=VEC[led1],R=VEC[paper],AMB=0.75;
+  var inc=tube?L:L.map(function(x){return x+AMB;});
+  var out=inc.map(function(x,i){return x*R[i];});
+  var svg=document.getElementById('scene1'),idx=PAPERS.indexOf(paper),cx=30+idx*132+60;
+  var h='<defs><linearGradient id="tb" x1="0" x2="1"><stop offset="0" stop-color="#121214"/><stop offset=".45" stop-color="#3a3a3e"/><stop offset="1" stop-color="#0d0d0f"/></linearGradient></defs>';
+  PAPERS.forEach(function(p,i){
+    var x=30+i*132;
+    h+='<g style="cursor:pointer" data-p="'+p+'"><rect x="'+x+'" y="232" width="120" height="50" fill="'+PAPER_HEX[p]+'" stroke="#999"/><text x="'+(x+60)+'" y="306" font-size="15" text-anchor="middle" fill="#333">'+ZH[p]+'紙</text></g>';
+  });
+  var disp=toCss(out.map(function(x){return Math.min(1,x);}));
+  if(tube){
+    h+='<ellipse cx="'+cx+'" cy="255" rx="44" ry="12" fill="#0d0d0f"/>';
+    h+='<rect x="'+(cx-44)+'" y="88" width="88" height="167" fill="url(#tb)"/>';
+    h+='<ellipse cx="'+cx+'" cy="88" rx="44" ry="13" fill="#0a0a0b" stroke="#444"/>';
+    h+='<ellipse cx="'+cx+'" cy="89" rx="36" ry="9" fill="'+disp+'" opacity="'+(Math.max(out[0],out[1],out[2])>0.1?0.95:0.15)+'"/>';
+    h+='<text x="'+cx+'" y="62" font-size="14" text-anchor="middle" fill="#333">從上往下看</text>';
+    h+='<line x1="'+cx+'" y1="68" x2="'+cx+'" y2="80" stroke="#333" stroke-width="1.5"/>';
+    h+='<ellipse cx="'+(cx+44)+'" cy="180" rx="4" ry="8" fill="#000" stroke="#555"/>';
+    h+='<polygon points="'+(cx+150)+',173 '+(cx+150)+',187 '+(cx+46)+',183 '+(cx+46)+',177" fill="'+LED_HEX[led1]+'" opacity="0.55"/>';
+  }else{
+    h+='<ellipse cx="'+cx+'" cy="257" rx="40" ry="13" fill="'+LED_HEX[led1]+'" opacity="0.45"/>';
+    h+='<polygon points="'+(cx+150)+',173 '+(cx+150)+',187 '+(cx+20)+',262 '+(cx+30)+',250" fill="'+LED_HEX[led1]+'" opacity="0.35"/>';
+    h+='<text x="'+cx+'" y="80" font-size="14" text-anchor="middle" fill="#a33">沒有紙筒：室內光也照在色紙上</text>';
+  }
+  h+='<rect x="'+(cx+150)+'" y="171" width="64" height="18" rx="6" fill="#505560"/><rect x="'+(cx+146)+'" y="173" width="8" height="14" rx="2" fill="'+LED_HEX[led1]+'" stroke="#333"/>';
+  h+='<text x="'+(cx+182)+'" y="208" font-size="13" text-anchor="middle" fill="#333">'+ZH[led1]+'光 LED</text>';
+  svg.innerHTML=h;
+  svg.querySelectorAll('[data-p]').forEach(function(g){g.addEventListener('click',function(){paper=g.dataset.p;setPaperSeg(paper);render31();});});
+  document.getElementById('view1').style.background=Math.max(out[0],out[1],out[2])<0.12?'#050505':disp;
+  var nm=colorName(out.map(function(x){return Math.min(1,x);}));
+  document.getElementById('view1Name').textContent=nm;
+  document.getElementById('bars1').innerHTML=barsHTML([{t:tube?'照射的光':'照射的光（LED＋室內光）',v:inc},{t:ZH[paper]+'紙對各色光的反射程度',v:R},{t:'進入眼睛的光',v:out}]);
+  var ex;
+  if(!tube) ex='室內白光也照到色紙上，所以色紙大致呈現原本的顏色，LED 色光的影響就看不清楚了。這就是實驗要用紙筒遮光的原因。';
+  else{
+    var refl=[],abs=[];['紅','綠','藍'].forEach(function(c,i){if(L[i]){(R[i]?refl:abs).push(c);}});
+    ex=ZH[led1]+'光中含有：'+['紅','綠','藍'].filter(function(c,i){return L[i];}).join('、')+'光。';
+    if(refl.length)ex+=ZH[paper]+'紙把 '+refl.join('、')+' 光反射到眼睛';
+    if(abs.length)ex+=(refl.length?'，':ZH[paper]+'紙把 ')+abs.join('、')+' 光吸收掉';
+    ex+='，所以看起來是<b>'+nm+'</b>。';
+  }
+  document.getElementById('explain1').innerHTML=ex;
+}
+// 3-2 scene
+var led2='white',filt='red';
+seg('led2Seg',function(v){led2=v;render32();});
+seg('filterSeg',function(v){filt=v;render32();});
+function render32(){
+  var L=VEC[led2],T=VEC[filt],out=L.map(function(x,i){return x*T[i];});
+  var svg=document.getElementById('scene2'),cx=330,lit=Math.max(out[0],out[1],out[2])>0.1,disp=toCss(out);
+  var h='<defs><linearGradient id="tb2" x1="0" x2="1"><stop offset="0" stop-color="#121214"/><stop offset=".45" stop-color="#3a3a3e"/><stop offset="1" stop-color="#0d0d0f"/></linearGradient></defs>';
+  h+='<rect x="150" y="232" width="360" height="50" fill="#f5f4ef" stroke="#999"/><text x="330" y="306" font-size="15" text-anchor="middle" fill="#333">白紙</text>';
+  h+='<ellipse cx="'+cx+'" cy="255" rx="44" ry="12" fill="#0d0d0f"/>';
+  h+='<rect x="'+(cx-44)+'" y="88" width="88" height="167" fill="url(#tb2)"/>';
+  h+='<ellipse cx="'+cx+'" cy="88" rx="44" ry="13" fill="#0a0a0b" stroke="#444"/>';
+  h+='<ellipse cx="'+cx+'" cy="89" rx="36" ry="9" fill="'+disp+'" opacity="'+(lit?0.95:0.15)+'"/>';
+  h+='<text x="'+cx+'" y="62" font-size="14" text-anchor="middle" fill="#333">從上往下看</text>';
+  h+='<line x1="'+cx+'" y1="68" x2="'+cx+'" y2="80" stroke="#333" stroke-width="1.5"/>';
+  // filter on hole
+  h+='<rect x="'+(cx+42)+'" y="164" width="10" height="34" fill="'+PAPER_HEX[filt]+'" opacity="0.75" stroke="#333" stroke-width=".8"/>';
+  h+='<text x="'+(cx+64)+'" y="150" font-size="13" fill="#333">'+ZH[filt]+'色玻璃紙</text>';
+  h+='<polygon points="'+(cx+190)+',173 '+(cx+190)+',187 '+(cx+52)+',184 '+(cx+52)+',176" fill="'+LED_HEX[led2]+'" opacity="0.55"/>';
+  h+='<rect x="'+(cx+190)+'" y="171" width="64" height="18" rx="6" fill="#505560"/><rect x="'+(cx+186)+'" y="173" width="8" height="14" rx="2" fill="'+LED_HEX[led2]+'" stroke="#333"/>';
+  h+='<text x="'+(cx+222)+'" y="208" font-size="13" text-anchor="middle" fill="#333">'+ZH[led2]+'光 LED</text>';
+  svg.innerHTML=h;
+  document.getElementById('view2').style.background=lit?disp:'#050505';
+  var nm=colorName(out);document.getElementById('view2Name').textContent=nm;
+  document.getElementById('bars2').innerHTML=barsHTML([{t:'照射的光',v:L},{t:ZH[filt]+'色玻璃紙讓各色光通過的程度',v:T},{t:'穿過玻璃紙的光',v:out}]);
+  var pass=[],abs=[];['紅','綠','藍'].forEach(function(c,i){if(L[i])(T[i]?pass:abs).push(c);});
+  var ex=ZH[led2]+'光中含有：'+['紅','綠','藍'].filter(function(c,i){return L[i];}).join('、')+'光。';
+  if(pass.length)ex+=ZH[filt]+'色玻璃紙讓 '+pass.join('、')+' 光通過';
+  if(abs.length)ex+=(pass.length?'，':ZH[filt]+'色玻璃紙把 ')+abs.join('、')+' 光吸收掉';
+  ex+='，所以白紙上看到<b>'+nm+'</b>。';
+  document.getElementById('explain2').innerHTML=ex;
+}
+// tables 3
+var LEDS=['white','red','green','blue'];
+var GIVEN31={'white|white':'白色','red|white':'紅色','red|red':'紅','red|blue':'黑','green|green':'綠','blue|black':'黑'};
+var GIVEN32={'red|red':'紅','red|blue':'黑','green|green':'綠'};
+function buildTbl(id,cols,given,prefix,colLabel){
+  var t=document.getElementById(id);
+  var h='<thead><tr><th>'+(prefix==='a'?'色光＼色紙':'色光＼玻璃紙')+'</th>'+cols.map(function(c){return '<th>'+ZH[c]+colLabel+'</th>';}).join('')+'</tr></thead><tbody>';
+  LEDS.forEach(function(l){
+    h+='<tr><th>'+ZH[l]+'光</th>';
+    cols.forEach(function(c){var k=l+'|'+c;
+      h+=given[k]?'<td class="given">'+given[k]+'</td>':'<td><select aria-label="'+ZH[l]+'光，'+ZH[c]+colLabel+'" data-k="'+prefix+'_'+k+'" data-ans="'+shortName(VEC[l].map(function(x,i){return x*VEC[c][i];}))+'">'+opt()+'</select></td>';});
+    h+='</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+  t.querySelectorAll('select').forEach(function(s){var k=s.dataset.k;if(store[k])s.value=store[k];s.addEventListener('change',function(){setVal(k,s.value);s.parentNode.classList.remove('ok','bad');});});
+}
+buildTbl('tbl31',PAPERS,GIVEN31,'a','紙');
+buildTbl('tbl32',['red','green','blue'],GIVEN32,'b','色');
+function checkTbl(id,fbId,rk){
+  var sels=document.querySelectorAll('#'+id+' select'),ok=0,empty=0,n=sels.length;
+  sels.forEach(function(s){s.parentNode.classList.remove('ok','bad');if(!s.value){empty++;return;}if(s.value===s.dataset.ans){ok++;s.parentNode.classList.add('ok');}else s.parentNode.classList.add('bad');});
+  store[rk]=ok+'/'+n;save();
+  if(empty){fb(fbId,'info','已填 '+(n-empty)+' 格，其中 '+ok+' 格正確。還有 '+empty+' 格沒填，請用模擬器實際操作後再記錄。');return;}
+  if(ok===n){fb(fbId,'ok','全部正確！');document.getElementById('sum3').style.display='';}
+  else fb(fbId,'bad','有 '+(n-ok)+' 格與實驗結果不同（紅色底）。回到模擬器重新操作該組合，並看看下方「光的去向分析」。');
+}
+document.getElementById('chk31').addEventListener('click',function(){checkTbl('tbl31','fb31','r31');});
+document.getElementById('chk32').addEventListener('click',function(){checkTbl('tbl32','fb32','r32');});
+
+/* 清除作答（共用平板換人使用） */
+(function(){var armed=false,btn=document.getElementById('clearAll');
+  btn.addEventListener('click',function(){
+    if(!armed){armed=true;btn.textContent='確定清除？再按一次';setTimeout(function(){armed=false;btn.textContent='清除作答';},4000);return;}
+    for(var k in store)delete store[k];try{localStorage.removeItem('lightLab');}catch(e){}
+    document.querySelectorAll('input[data-key],textarea[data-key],select').forEach(function(el){el.value='';if(el.parentNode)el.parentNode.classList.remove('ok','bad');});
+    document.querySelectorAll('.fb').forEach(function(el){el.className='fb';el.innerHTML='';});
+    ['sum1','sum2','sum3'].forEach(function(id){document.getElementById(id).style.display='none';});
+    document.querySelectorAll('details.ref').forEach(function(d){d.open=false;});
+    seenSpectrum=false;found.length=0;renderFound();drawMix();
+    armed=false;btn.textContent='已清除';setTimeout(function(){btn.textContent='清除作答';},2000);
+  });
+})();
+if(document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){drawPrism();drawMix();});}
+/* init */
+setRot(0);
+drawMix();render31();render32();
+})();
+</script>
+</body>
+</html>
